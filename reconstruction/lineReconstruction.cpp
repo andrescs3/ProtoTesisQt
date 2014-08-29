@@ -18,7 +18,7 @@ class InfoPoint
     public:
     int x;
     int y;
-    double direccion;
+    int direccion;
     int endCode;
     int endCodeDir;
     bool state;
@@ -26,13 +26,13 @@ class InfoPoint
     {
         this->x = 0;
         this->y = 0;
-        this->direccion = 0.0;
+        this->direccion = 0;
         this->endCode = 0;
         this->endCodeDir = 0;
         this->state = true;
     }
 
-    InfoPoint(int xi, int yi, double dir, int encode, int  encodedir)
+    InfoPoint(int xi, int yi, int dir, int encode, int  encodedir)
     {
         this->x = xi;
         this->y = yi;
@@ -419,7 +419,6 @@ int getDir(int x, int y, Mat dst)
 
        uchar p3 = dst.at<uchar>(y,x+1)== 255   ? 0:1;
 
-
        uchar p4 = dst.at<uchar>(y+1,x+1)== 255   ? 0:1;
 
        uchar p5 = dst.at<uchar>(y+1,x)== 255   ? 0:1;
@@ -561,6 +560,8 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 
     Mat dst2 = src.clone();
     Mat src1 = src.clone();
+    Mat src3 = src.clone();
+
     //copyMakeBorder(src1, src1, 1, 1, 1, 1, BORDER_CONSTANT, 0);
    // copyMakeBorder(dst2, dst2, 1, 1, 1, 1, BORDER_CONSTANT, 0);
     dst = src.clone();
@@ -587,24 +588,27 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 
                     if(isEndPoint(val))
                     {
-
+                        cout<<"*********"<<endl;
                        /* (points[j][i]).x = j;
                         (points[j][i]).y = i;*/
-                        InfoPoint* f = new InfoPoint();
-                        char* key = parsePoint(j,i);
+
+                       // int xi, int yi, double dir, int encode, int  encodedir
+                        int dd = src3.at<uchar>(j,i);
+                        cout<<dd<<"}}}}"<<endl;
+                        double v1 = dirEndPoint(i, j, 10, src3);
+                        cout<<v1<<endl;
+                        int fdir = (int ) changeDir(round(v1));
+
+                        InfoPoint* f = new InfoPoint(i,j,fdir,val, val);
+
+
+                        char* key = parsePoint(i,j);
                         int size = strlen(key);
-
-                        cout<<key<<endl;
-                        cout<<size<<endl;
-                        cout<<j<<endl;
-                        cout<<i<<endl;
-                        cout<<"****************"<<endl;
-
                         trie.addEntry(key, 32, f);
-                        endPoints.at<uchar>(j,i) = 0;
+                        endPoints.at<uchar>(i,j) = 0;
                         InfoPoint* k = trie.getEntry(key, 32);
-                        cout<<k->direccion<<"............."<<endl;
-
+                        cout<<k->endCode<<"......"<<endl;
+                        cout<<"*********"<<endl;
                     }
                     else
                     {
@@ -633,3 +637,5 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 
     imwrite("d:/res/result2.png", endPoints);
 }
+
+
