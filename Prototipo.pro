@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     cuerpos/cuerpos.cpp \
     limpieza/limpieza.cpp \
     reconstruction/lineReconstruction.cpp \
-    thinning/thinning.cpp
+    thinning/thinning.cpp \
+    support/Exception.cpp
 
 HEADERS  += mainwindow.h \
     common/commonFilters.h \
@@ -28,7 +29,14 @@ HEADERS  += mainwindow.h \
     cuerpos/cuerpos.h \
     limpieza/limpieza.h \
     reconstruction/lineReconstruction.h \
-    thinning/thinning.h
+    thinning/thinning.h \
+    support/Exception.h \
+    support/Trie.h \
+    support/Trie.hxx \
+    support/TrieFactory.h \
+    support/TrieFactory.hxx \
+    support/TrieNode.h \
+    support/TrieNode.hxx
 
 FORMS    += mainwindow.ui \
     dialogThinning.ui

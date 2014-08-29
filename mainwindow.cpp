@@ -17,7 +17,7 @@
 
 using namespace std;
 using namespace cv;
-std::string resultFileName = "D:/result.png";
+std::string resultFileName = "D:/res/lastresult.png";
 Mat src;
 Mat dst;
 
@@ -155,7 +155,7 @@ void  MainWindow::thinningGuoHall() {
 }
 
 void MainWindow::lineReconstruction() {
-    for(int k=0; k<10; k++) {
+    for(int k=0; k<1; k++) {
         execLineReconstruction(src, dst, 20 + k*10);
         src = dst.clone();
         saveResultImage();

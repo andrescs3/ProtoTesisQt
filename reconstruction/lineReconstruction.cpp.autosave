@@ -593,18 +593,10 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
                         InfoPoint* f = new InfoPoint();
                         char* key = parsePoint(j,i);
                         int size = strlen(key);
-
-                        cout<<key<<endl;
-                        cout<<size<<endl;
-                        cout<<j<<endl;
-                        cout<<i<<endl;
-                        cout<<"****************"<<endl;
-
                         trie.addEntry(key, 32, f);
                         endPoints.at<uchar>(j,i) = 0;
                         InfoPoint* k = trie.getEntry(key, 32);
-                        cout<<k->direccion<<"............."<<endl;
-
+                        
                     }
                     else
                     {
