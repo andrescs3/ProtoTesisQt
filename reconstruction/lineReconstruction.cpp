@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include "lineReconstruction.h"
 #include <math.h>
@@ -12,6 +11,7 @@ using namespace std;
 
 int pos[20000][6];
 double points[10];
+
 
 class InfoPoint
 {
@@ -51,8 +51,17 @@ class InfoPoint
     }
 };
 
-void execLineReconstructionOld(cv::Mat& src, cv::Mat& dst, int h)
+typedef std::vector<InfoPoint> VecPoints;
+
+
+void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 {
+
+    /**************NUEVOS PARAMETROS**********************/
+
+    int limitSearch = 10;
+
+
     //Mat dst2 = imread("c:/img/result.png", CV_LOAD_IMAGE_COLOR);
     //int h = 10;
     //Mat src = imread("c:/img/result.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -60,10 +69,8 @@ void execLineReconstructionOld(cv::Mat& src, cv::Mat& dst, int h)
     Mat dst2 = src.clone();
     Mat src1 = src.clone();
     dst = src.clone();
-    cvtColor(dst, dst2, CV_GRAY2BGR);
-
-
-        int nPoints = 0;
+    //cvtColor(dst, dst2, CV_GRAY2BGR);
+    int nPoints = 0;
 
         for(int j=1;j<(src.rows);j++)
         {
@@ -104,24 +111,29 @@ void execLineReconstructionOld(cv::Mat& src, cv::Mat& dst, int h)
 
             }
         }
-
+        Mat src2 = src.clone();
         for(int k=0; k<nPoints; k++)
         {
-            Mat src2 = src.clone();
+
             int y0 = pos[k][0];
             int x0 = pos[k][1];
-            int dir = pos[k][2];
+            //int dir = pos[k][2];
             int flag = pos[k][3];
             int val = pos[k][2];
             int a = val;
-            stringstream ss;
-            ss << a;
-            string str = ss.str();
-
+            double v1 = dirEndPoint(x0, y0, 50, src2);
+            pos[k][2] = (int ) changeDir(round(v1));
+            int dir = pos[k][2];
+            int xd = -1;
+            int yd = -1;
+            double max = INFINITY;
+            cout<<k<<endl;
+            cout<<y0<<endl;
+            cout<<x0<<endl;
             if(flag != 1)
             {
                 pos[k][3] = 1;
-                Point p = nextPoint(x0, y0, 50, src2);
+                Point p = nextPoint(x0, y0, limitSearch, src2);
                 for(int m=0; m<nPoints; m++)
                 {
                     int y1 = pos[m][0];
@@ -135,23 +147,54 @@ void execLineReconstructionOld(cv::Mat& src, cv::Mat& dst, int h)
                         pos[m][3] = 1;
                         pos[m][4] = y0;
                         pos[m][5] = x0;
-                       // int a1 = pos[m][2];
-                       // stringstream ss;
-                        //ss << a1;
-                        //string str2 = ss.str();
+
+                        int yi = pos[m][0];
+                        int xi = pos[m][1];
+                        double vi = dirEndPoint(xi, yi, limitSearch, src2);
+                        pos[m][2] = (int ) changeDir(round(vi));
+                        int y1 = pos[m][4];
+                        int x1 = pos[m][5];
+                        int dir1 = pos[m][2];
+                        if(y1==y0 && x1==x0 && (yi != y0  || xi != x0))
+                        {
+                            if(!deletePoints(dir, dir1))
+                            {
+                                pos[m][2] = 0;
+
+                            }
+                            else{
+                                if(abs(y0-y1)< max)
+                                {
+                                    max = abs(y0-y1);
+                                    yd = yi;
+                                    xd = xi;
+                                }
+                            }
+                        }
 
                     }
                 }
+
+                if(xd != -1 && yd != -1)
+                {
+                    //Mat dst2 = dst.clone();
+
+                    line(dst,Point(x0,y0),Point(xd,yd),CV_RGB(0,255,0),1,1);
+                    line(dst2,Point(x0,y0),Point(xd,yd),CV_RGB(255,0,0),1,1);
+                }
+                cout<<"*****************************"<<endl;
             }
 
 
         }
 
+        imwrite("c:/img/result2.png", dst2);
 
-        for(int k=0; k<nPoints; k++)
+
+        /*for(int k=0; k<nPoints; k++)
         {
             Mat src3 = src.clone();
-
+            cout<<k<<endl;
             int y0 = pos[k][0];
             int x0 = pos[k][1];
             int flag = pos[k][3];
@@ -164,6 +207,7 @@ void execLineReconstructionOld(cv::Mat& src, cv::Mat& dst, int h)
            // cout<<"************"<<endl;
             for(int m=0; m<nPoints; m++)
             {
+                cout<<m<<endl;
                 Mat src4 = src.clone();
                 int yi = pos[m][0];
                 int xi = pos[m][1];
@@ -202,18 +246,11 @@ void execLineReconstructionOld(cv::Mat& src, cv::Mat& dst, int h)
                 line(dst,Point(x0,y0),Point(xd,yd),CV_RGB(0,255,0),1,1);
                 line(dst2,Point(x0,y0),Point(xd,yd),CV_RGB(255,0,0),1,1);
             }
-
-
-
-
+            cout<<"*****************************"<<endl;
 
         }
 
-
-         imwrite("c:/img/result2.png", dst2);
-
-
-
+        imwrite("c:/img/result2.png", dst2);*/
 
 }
 
@@ -534,9 +571,6 @@ bool deletePoints(int d1, int d2)
     return false;
 }
 
-
-
-
 char* parsePoint(int x, int y)
 {
     char*a = "x";
@@ -548,8 +582,7 @@ char* parsePoint(int x, int y)
     return ans2;
 }
 
-
-void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
+void execLineReconstructiondd(cv::Mat& src, cv::Mat& dst, int h)
 {
 
    //InfoPoint points[src.rows][src.cols];}
@@ -576,6 +609,7 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
                uchar p =  src1.at<uchar>(j,i) == 255   ? 0:1;
                if(pk==0 && (j>y && i>x) && (j<src.rows -y && i<src.cols-x))
                {
+
                     uchar p1 = src1.at<uchar>(j-1,i)== 255   ? 0:1;
                     uchar p2 = src1.at<uchar>(j-1,i+1)== 255   ? 0:1;
                     uchar p3 = src1.at<uchar>(j,i+1)== 255   ? 0:1;
@@ -594,21 +628,18 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 
                        // int xi, int yi, double dir, int encode, int  encodedir
                         int dd = src3.at<uchar>(j,i);
-                        cout<<dd<<"}}}}"<<endl;
+                       // cout<<dd<<"}}}}"<<endl;
                         double v1 = dirEndPoint(i, j, 10, src3);
-                        cout<<v1<<endl;
+                        //cout<<v1<<endl;
                         int fdir = (int ) changeDir(round(v1));
-
                         InfoPoint* f = new InfoPoint(i,j,fdir,val, val);
-
-
                         char* key = parsePoint(i,j);
                         int size = strlen(key);
                         trie.addEntry(key, 32, f);
                         endPoints.at<uchar>(i,j) = 0;
                         InfoPoint* k = trie.getEntry(key, 32);
-                        cout<<k->endCode<<"......"<<endl;
-                        cout<<"*********"<<endl;
+                        //cout<<k->endCode<<"......"<<endl;
+                        //cout<<"*********"<<endl;
                     }
                     else
                     {
@@ -637,5 +668,3 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 
     imwrite("d:/res/result2.png", endPoints);
 }
-
-
