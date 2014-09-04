@@ -53,8 +53,488 @@ class InfoPoint
 
 typedef std::vector<InfoPoint> VecPoints;
 
+int isValid(int j, int i, Mat& src1, int x, int y)
+{
+    uchar pk =  src1.at<uchar>(j,i);
+    uchar p =  src1.at<uchar>(j,i) == 255   ? 0:1;
+    if(pk==0 && (j>y && i>x) && (j<src1.rows -y && i<src1.cols-x))
+    {
+
+         uchar p1 = src1.at<uchar>(j-1,i)== 255   ? 0:1;
+         uchar p2 = src1.at<uchar>(j-1,i+1)== 255   ? 0:1;
+         uchar p3 = src1.at<uchar>(j,i+1)== 255   ? 0:1;
+         uchar p4 = src1.at<uchar>(j+1,i+1)== 255   ? 0:1;
+         uchar p5 = src1.at<uchar>(j+1,i)== 255   ? 0:1;
+         uchar p6 = src1.at<uchar>(j+1,i-1)== 255   ? 0:1;
+         uchar p7 = src1.at<uchar>(j,i-1)== 255   ? 0:1;
+         uchar p8 = src1.at<uchar>(j-1,i-1)== 255   ? 0:1;
+
+         int val = getCode(p1,p2,p3,p4,p5,p6,p7,p8);
+         return val;
+    }
+
+    return -1;
+}
+
+double dist(int x0, int x1, int y0, int y1)
+{
+     double x = (x0-x1)^2;
+     double y = (y1-y0)^2;
+     return sqrt(x+y);
+}
 
 void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
+{
+
+    /*PARAMETROS*/
+
+    h = 40;
+    int limit = 20;
+    int limitX = 3;
+    int limitY = 3;
+    int inc = 5;
+    int Max = 100;
+    int hInit = h;
+
+    Mat dst2 = src.clone();
+    Mat src1 = src.clone();
+
+    dst = src.clone();
+    int nPoints = 0;
+    int j, i, v, t;
+
+    for(j=1;j<(src.rows);j++)
+    {
+
+        for (i=1;i<(src.cols);i++)
+        {
+            //Mat src2 = src1.clone();
+            //Mat src3 = src1.clone();
+
+           //DETERMINO SI ES UN PUNTO DE FIN
+           int endVal = isValid(j,i, src1, limitX, limitY);
+           if(isEndPoint(endVal))
+                {
+                    //CALCULO LIMITES DE LA MASCARA
+                    int up = j-(h/2);
+                    int down = j+(h/2);
+                    if(up < 0)
+                    {
+                        up = 0;
+                    }
+                    if(down>src.rows)
+                    {
+                        down = src.rows;
+                    }
+
+                    int left = i-(h/2);
+                    int right = i+(h/2);
+                    if(left < 0)
+                    {
+                        left = 0;
+                    }
+                    if(right>src.cols)
+                    {
+                        right = src.cols;
+                    }
+
+                    /*****************************************/
+
+                    Point p = nextPoint(i,j,limit, src1);
+                    double dirPoint = dirEndPoint(i, j, 5, src1);
+                    int d1 = (int ) changeDir(round(dirPoint));
+
+
+
+                    cout<<"j"<<j<<endl;
+                    cout<<"i"<<i<<endl;
+                    cout<<d1<<endl;
+
+                    int xd = -1;
+                    int yd = -1;
+                    double max = INFINITY;
+
+                    for(v=up; v<down;  v++)
+                    {
+                        for(t=left; t<right;  t++)
+                        {
+                            //Mat src4 = src1.clone();
+                            int endValInner = isValid(v,t, src1, limitX, limitY);
+                            if(endValInner>=0)
+                            {
+                                if(isEndPoint(endValInner))
+                                {
+                                    if(v!=j || t!=i)
+                                    {
+                                        if(p.x != t && p.y != v)
+                                        {
+                                            cout<<v<<endl;
+                                            cout<<t<<endl;
+                                            double dirCandidate = dirEndPoint(t, v, 5, src1);
+                                            int d2 = (int ) changeDir(round(dirCandidate));
+                                            cout<<"Candidate"<<d2<<endl;
+                                            if(deletePoints(d1, d2))
+                                            {
+
+                                                        if(abs(j-v)< max)
+                                                        {
+                                                            max = abs(j-v);
+                                                            yd = v;
+                                                            xd = t;
+                                                        }
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }
+
+                    }
+
+                    if(xd != -1 && yd != -1)
+                    {
+                        line(src1,Point(i,j),Point(xd,yd),CV_RGB(255,0,0),1,1);
+
+                    }
+                    else
+                    {
+
+                    }
+
+                    cout<<"***************"<<endl;
+                    nPoints++;
+                }
+
+
+
+
+        }
+    }
+
+
+
+
+    imwrite("c:/img/result222.png", src1);
+
+    /*h = h/2;
+    hInit = h;
+*/
+    for(j=1;j<(src.rows);j++)
+    {
+        h = hInit;
+        for (i=1;i<(src.cols);i++)
+        {
+            //Mat src2 = src1.clone();
+            //Mat src3 = src1.clone();
+
+           //DETERMINO SI ES UN PUNTO DE FIN
+           int endVal = isValid(j,i, src1, limitX, limitY);
+           if(isEndPoint(endVal))
+                {
+                    //CALCULO LIMITES DE LA MASCARA
+                    int up = j-(h/2);
+                    int down = j+(h/2);
+                    if(up < 0)
+                    {
+                        up = 0;
+                    }
+                    if(down>src.rows)
+                    {
+                        down = src.rows;
+                    }
+
+                    int left = i-(h/2);
+                    int right = i+(h/2);
+                    if(left < 0)
+                    {
+                        left = 0;
+                    }
+                    if(right>src.cols)
+                    {
+                        right = src.cols;
+                    }
+
+                    /*****************************************/
+
+                    Point p = nextPoint(i,j,h, src1);
+                    double dirPoint = dirEndPoint(i, j, 10, src1);
+                    //int d1 = (int ) changeDir(round(dirPoint));
+                    switch((int)dirPoint)
+                    {
+                        case 0:
+                            up = j;
+                            down = j+h;
+                            if(up < 0)
+                            {
+                                up = 0;
+                            }
+                            if(down>src.rows)
+                            {
+                                down = src.rows;
+                            }
+
+                            left = i-(h/2);
+                            right = i+(h/2);
+                            if(left < 0)
+                            {
+                                left = 0;
+                            }
+                            if(right>src.cols)
+                            {
+                                right = src.cols;
+                            }
+                        break;
+
+                        case 1:
+                             up = j;
+                            down = j+h;
+                            if(up < 0)
+                            {
+                                up = 0;
+                            }
+                            if(down>src.rows)
+                            {
+                                down = src.rows;
+                            }
+
+                            left = i-(h/2);
+                            right = i+(h/2);
+                            if(left < 0)
+                            {
+                                left = 0;
+                            }
+                            if(right>src.cols)
+                            {
+                                right = src.cols;
+                            }
+                        break;
+
+                        case 2:
+                            up = j-(h/2);
+                            down = j+(h/2);
+                            if(up < 0)
+                            {
+                                up = 0;
+                            }
+                            if(down>src.rows)
+                            {
+                                down = src.rows;
+                            }
+
+                            left = i-h;
+                            right = i;
+                            if(left < 0)
+                            {
+                                left = 0;
+                            }
+                            if(right>src.cols)
+                            {
+                                right = src.cols;
+                            }
+                        break;
+
+                        case 3:
+                            up = j-h;
+                            down = j;
+                            if(up < 0)
+                            {
+                                up = 0;
+                            }
+                            if(down>src.rows)
+                            {
+                                down = src.rows;
+                            }
+
+                            left = i-(h/2);
+                            right = i+(h/2);
+                            if(left < 0)
+                            {
+                                left = 0;
+                            }
+                            if(right>src.cols)
+                            {
+                                right = src.cols;
+                            }
+                        break;
+
+                        case 4:
+                             up = j-h;
+                             down = j;
+                            if(up < 0)
+                            {
+                                up = 0;
+                            }
+                            if(down>src.rows)
+                            {
+                                down = src.rows;
+                            }
+
+                             left = i-(h/2);
+                             right = i+(h/2);
+                            if(left < 0)
+                            {
+                                left = 0;
+                            }
+                            if(right>src.cols)
+                            {
+                                right = src.cols;
+                            }
+                        break;
+
+                        case 5:
+                            up = j-h;
+                            down = j;
+                            if(up < 0)
+                            {
+                                up = 0;
+                            }
+                            if(down>src.rows)
+                            {
+                                down = src.rows;
+                            }
+
+                            left = i-(h/2);
+                            right = i+(h/2);
+                            if(left < 0)
+                            {
+                                left = 0;
+                            }
+                            if(right>src.cols)
+                            {
+                                right = src.cols;
+                            }
+                        break;
+
+                        case 6:
+                             up = j-(h/2);
+                             down = j+(h/2);
+                            if(up < 0)
+                            {
+                                up = 0;
+                            }
+                            if(down>src.rows)
+                            {
+                                down = src.rows;
+                            }
+
+                             left = i;
+                             right = i+h;
+                            if(left < 0)
+                            {
+                                left = 0;
+                            }
+                            if(right>src.cols)
+                            {
+                                right = src.cols;
+                            }
+                        break;
+
+                        case 7:
+                           up = j;
+                           down = j+h;
+                           if(up < 0)
+                           {
+                               up = 0;
+                           }
+                           if(down>src.rows)
+                           {
+                               down = src.rows;
+                           }
+
+                           left = i-(h/2);
+                           right = i+(h/2);
+                           if(left < 0)
+                           {
+                               left = 0;
+                           }
+                           if(right>src.cols)
+                           {
+                               right = src.cols;
+                           }
+                        break;
+
+                    }
+                    cout<<"j"<<j<<endl;
+                    cout<<"i"<<i<<endl;
+                    //cout<<d1<<endl;
+
+                    int xd = -1;
+                    int yd = -1;
+                    double max = INFINITY;
+
+                    for(v=up; v<down;  v++)
+                    {
+                        for(t=left; t<right;  t++)
+                        {
+                            //Mat src4 = src1.clone();
+                            int endValInner = isValid(v,t, src1, limitX, limitY);
+                            if(endValInner>=0)
+                            {
+                                if(isEndPoint(endValInner))
+                                {
+                                    if(v!=j || t!=i)
+                                    {
+                                        if(p.x != t && p.y != v)
+                                        {
+                                            cout<<v<<endl;
+                                            cout<<t<<endl;
+                                            double dirCandidate = dirEndPoint(t, v, 10, src1);
+                                            //int d2 = (int ) changeDir(round(dirCandidate));
+                                            //cout<<"Candidate"<<d2<<endl;
+                                            if(dirCandidate != dirPoint)
+                                            {
+                                                double distan = dist(i,t,j,v);
+                                                if(distan< max)
+                                                {
+                                                    max = distan;
+                                                    yd = v;
+                                                    xd = t;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }
+
+                    }
+
+                    if(xd != -1 && yd != -1)
+                    {
+                        line(src1,Point(i,j),Point(xd,yd),CV_RGB(255,0,0),1,1);
+
+                    }
+                    else
+                    {
+                        if(h<= Max)
+                        {
+                            i = i-1;
+                            h = h+inc;
+                        }
+
+                    }
+
+                    cout<<"***************"<<endl;
+
+                    nPoints++;
+                }
+
+
+
+
+        }
+    }
+    imwrite("c:/img/result2.png", src1);
+}
+
+
+
+void oexecLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 {
 
     /**************NUEVOS PARAMETROS**********************/
@@ -155,11 +635,13 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
                         int y1 = pos[m][4];
                         int x1 = pos[m][5];
                         int dir1 = pos[m][2];
+
+
                         if(y1==y0 && x1==x0 && (yi != y0  || xi != x0))
                         {
                             if(!deletePoints(dir, dir1))
                             {
-                                pos[m][2] = 0;
+                                pos[m][3] = 0;
 
                             }
                             else{
@@ -266,6 +748,7 @@ int getCode(uchar p1, uchar p2, uchar p3, uchar p4, uchar p5, uchar p6, uchar p7
 
 Point nextPoint(int x, int y, int limit, Mat dst)
 {
+    int paint[limit][2];
 
     for(int i=0; i<limit; i++)
     {
@@ -275,6 +758,10 @@ Point nextPoint(int x, int y, int limit, Mat dst)
       // ss << a;
        //string str = ss.str();
        dst.at<uchar>(y,x) = 255;
+
+       paint[i][0] = y;
+       paint[i][1] = x;
+
        int x0 = x;
        int y0 = y;
 
@@ -313,13 +800,21 @@ Point nextPoint(int x, int y, int limit, Mat dst)
        int dir =getDir(x,y, dst);
        if(isEndPoint(dir))
        {
-
-           return Point(x,y);
+          for(int k = 0; k<=i; k++)
+          {
+              dst.at<uchar>(paint[k][0],paint[k][1]) = 0;
+          }
+          return Point(x,y);
        }
        dst.at<uchar>(y0,x0) = 255;
 
     }
 
+
+    for(int k = 0; k<limit; k++)
+    {
+        dst.at<uchar>(paint[k][0],paint[k][1]) = 0;
+    }
     return Point(-1,-1);
 }
 
@@ -327,6 +822,7 @@ double dirEndPoint(int x, int y, int limit, Mat dst)
 {
     double dir = 0.0;
     int cont = 0;
+    int paint[limit][2];
     for(int i=0; i<limit; i++)
     {
         int vaj = dst.at<uchar>(y,x);
@@ -345,6 +841,9 @@ double dirEndPoint(int x, int y, int limit, Mat dst)
                 dst.at<uchar>(y,x) = 255;
                 int x0 = x;
                 int y0 = y;
+                paint[i][0] = y;
+                paint[i][1] = x;
+
 
                 switch(val)
                 {
@@ -393,6 +892,7 @@ double dirEndPoint(int x, int y, int limit, Mat dst)
     double p1 = points[0];
     double acum = 0.0;
 
+
     for(int k=0; k<cont; k++)
     {
         double p2 = points[k];
@@ -405,6 +905,7 @@ double dirEndPoint(int x, int y, int limit, Mat dst)
             p1 = (p1+p2)/2;
             p1 = p1+180.0;
         }
+        dst.at<uchar>(paint[k][0],paint[k][1]) = 0;
     }
 
      return getCodeDir(p1);
@@ -470,30 +971,6 @@ int getDir(int x, int y, Mat dst)
 
        return val;
 }
-/*
-int getChainDir(int dir)
-{
-    switch(dir)
-    {
-        case 1:
-            return 1;
-        case 2:
-            return 2;
-        case 4:
-            return 3;
-        case 8:
-          return 4;
-        case 16:
-            return 5;
-        case 32:
-            return 6;
-        case 64:
-            return 7;
-        case 128:
-            return 0;
-    }
-}
-*/
 
 double getChainDir(int dir)
 {
