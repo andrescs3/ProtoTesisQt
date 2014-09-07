@@ -14,9 +14,14 @@
 #include "reconstruction/lineReconstruction.h"
 #include "cuerpos/Cuerpo.h"
 #include "cuerpos/cuerpos.h"
+#include "vectorize/vect_catmull.h"
+#include "vectorize/vect.h"
+#include "vectorize/vect_RDP.h"
 
 using namespace std;
 using namespace cv;
+
+
 std::string resultFileName = "d:/res/lastresult.png";
 Mat src;
 Mat dst;
@@ -114,6 +119,10 @@ void MainWindow::ejecutar()
     {
         lineReconstruction();
     }
+    if(ui->chkVectorizacion->checkState())
+    {
+        vectorize();
+    }
 
 }
 
@@ -179,7 +188,7 @@ void MainWindow::cleanIsolated() {
 
 void MainWindow::cleanIsolatedLines() {
     limpia::exec_limpiarTrazosAislados(src, dst);
-    src = dst.clone();
+    src = dst;
     saveResultImage();
     showResultImage();
 }
@@ -187,8 +196,20 @@ void MainWindow::cleanIsolatedLines() {
 void MainWindow::cleanBodies()
 {
     cuerpos::exec_limpiarCuerpos(src, dst);
-    src = dst.clone();
+    src = dst;
     saveResultImage();
     showResultImage();
 
+}
+
+void MainWindow::vectorize()
+{
+    Mat imgGrises, imgBinaria;
+    //cvtColor(src, imgGrises, CV_BGR2GRAY); // a escala de grises
+    threshold(src, imgBinaria, 200, 255, CV_THRESH_BINARY); // filtro de umbral para obtener la versión binaria
+    copyMakeBorder(imgBinaria, imgBinaria, 1, 1, 1, 1, BORDER_CONSTANT, 255); // agregamos borde de 1px
+    vect::execVectorize(imgBinaria, "vectorizado", 1, 1);
+    src = imgBinaria;
+    saveResultImage();
+    showResultImage();
 }

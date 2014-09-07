@@ -96,6 +96,8 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
     int Max = 100;
     int hInit = h;
 
+
+
     Mat dst2 = src.clone();
     Mat src1 = src.clone();
 
@@ -531,8 +533,6 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
     }
     imwrite("c:/img/result2.png", src1);
 }
-
-
 
 void oexecLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 {

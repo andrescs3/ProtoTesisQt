@@ -34,6 +34,7 @@ private slots:
     void cleanIsolated();
     void cleanIsolatedLines();
     void cleanBodies();
+    void vectorize();
 };
 
 #endif // MAINWINDOW_H

@@ -21,7 +21,11 @@ SOURCES += main.cpp\
     limpieza/limpieza.cpp \
     reconstruction/lineReconstruction.cpp \
     thinning/thinning.cpp \
-    support/Exception.cpp
+    support/Exception.cpp \
+    vectorize/main2.cpp \
+    vectorize/vect.cpp \
+    vectorize/vect_catmull.cpp \
+    vectorize/vect_RDP.cpp
 
 HEADERS  += mainwindow.h \
     common/commonFilters.h \
@@ -36,7 +40,11 @@ HEADERS  += mainwindow.h \
     support/TrieFactory.h \
     support/TrieFactory.hxx \
     support/TrieNode.h \
-    support/TrieNode.hxx
+    support/TrieNode.hxx \
+    vectorize/vect.h \
+    vectorize/vect_catmull.h \
+    vectorize/vect_RDP.h \
+    vectorize/shapelib/shapefil.h
 
 FORMS    += mainwindow.ui \
     dialogThinning.ui
@@ -57,3 +65,9 @@ win32 {
         -lopencv_highgui249 \
         -lopencv_imgproc249
 }
+
+
+unix|win32: LIBS += -L$$PWD/vectorize/shapelib/ -lshapelib
+
+INCLUDEPATH += $$PWD/vectorize/shapelib
+DEPENDPATH += $$PWD/vectorize/shapelib
