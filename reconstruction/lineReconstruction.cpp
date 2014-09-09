@@ -5,6 +5,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "support//Trie.hxx"
 #include "support/Exception.h"
+#include "thinning/thinning.h"
 using namespace cv;
 using namespace std;
 
@@ -78,8 +79,8 @@ int isValid(int j, int i, Mat& src1, int x, int y)
 
 double dist(int x0, int x1, int y0, int y1)
 {
-     double x = (x0-x1)^2;
-     double y = (y1-y0)^2;
+     double x = (x0-x1)*(x0-x1);
+     double y = (y1-y0)*(y1-y0);
      return sqrt(x+y);
 }
 
@@ -220,7 +221,7 @@ void execLineReconstruction(cv::Mat& src, cv::Mat& dst, int h)
 
 
     imwrite("c:/img/result222.png", src1);
-
+    execThinningGuoHall(src1, src1);
     /*h = h/2;
     hInit = h;
 */

@@ -74,7 +74,6 @@ void execThinningGuoHall(cv::Mat& src, cv::Mat& dst)
 
     thinningGuoHall(dst);
 
-
     cv::bitwise_xor(dst, cv::Scalar(255), dst);
 
 }
